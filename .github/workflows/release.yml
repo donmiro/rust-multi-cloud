@@ -26,15 +26,18 @@ jobs:
         run: |
           cargo build --release --target-dir target/${{ matrix.target-dir }}
 
-      - name: Package binary
-        shell: bash
+      - name: Package (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         run: |
           cd target/${{ matrix.target-dir }}/release
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            zip rmc-${{ matrix.target-dir }}.zip rmc.exe
-          else
-            tar czf rmc-${{ matrix.target-dir }}.tar.gz rmc
-          fi
+          tar czf rmc-${{ matrix.target-dir }}.tar.gz rmc
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          cd target/${{ matrix.target-dir }}/release
+          Compress-Archive -Path rmc.exe -DestinationPath rmc-${{ matrix.target-dir }}.zip
 
       - name: Publish on GitHub Releases
         uses: softprops/action-gh-release@v1
